@@ -32,15 +32,14 @@ pipeline {
             }
         }
         stage('Build Docker image and publish') {
-            agent { label 'slave && docker' }
+            agent { label 'slave && default' }
             steps {
-                container('docker') {
                     unstash 'app'
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
-                        sh 'docker build -t $USERNAME/hello-flask:latest .'
-                        sh 'docker push docker login -u $USERNAME -p $TOKEN'
+                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
+                            docker.build("$USERNAME/hello-flask:latest").push()
+                        }
                     }
-                }
             }
         }
     }
