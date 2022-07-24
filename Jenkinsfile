@@ -32,7 +32,7 @@ pipeline {
             }
         }
         stage('Build Docker image and publish') {
-            agent { label 'slave && default' }
+            agent { label 'slave && docker' }
             steps {
                 unstash 'app'
                 withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
