@@ -32,18 +32,32 @@ pipeline {
             }
         }
         stage('Build Docker image and publish') {
-            agent { label 'slave && docker' }
+            agent {
+                kubernetes {
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    spec:
+                        containers:
+                        - name: docker
+                            image: docker:19.03.1-dind
+                            securityContext:
+                                privileged: true
+                            env:
+                            - name: DOCKER_TLS_CERTDIR
+                                value: ""
+                    """
+                }
+            }
             steps {
-                    container('docker') {
-                        unstash 'app'
-                        script {
-                            docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-                                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
-                                    docker.build("$USERNAME/hello-flask:latest").push()
-                                }
-                            }
-                        }
+                container('docker') {
+                    unstash 'app'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'PASSWORD')]) {
+                        sh 'docker build -t $USERNAME/hello-flask .'
+                        sh 'docker login -u $USERNAME -p $PASSWORD'
+                        sh 'docker push $USERNAME/hello-flask'
                     }
+                }
             }
         }
     }
