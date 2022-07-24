@@ -34,10 +34,12 @@ pipeline {
         stage('Build Docker image and publish') {
             agent { label 'slave && docker' }
             steps {
-                unstash 'app'
-                withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
-                    sh 'docker build -t $USERNAME/hello-flask:latest .'
-                    sh 'docker push docker login -u $USERNAME -p $TOKEN'
+                container('docker') {
+                    unstash 'app'
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
+                        sh 'docker build -t $USERNAME/hello-flask:latest .'
+                        sh 'docker push docker login -u $USERNAME -p $TOKEN'
+                    }
                 }
             }
         }
