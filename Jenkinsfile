@@ -31,5 +31,12 @@ pipeline {
                 archiveArtifacts artifacts: "hello-${BUILD_NUMBER}.tar.gz"
             }
         }
+        stage('Build Docker image and publish') {
+            agent { label 'slave && default' }
+            withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
+                sh 'docker build -t $USERNAME/hello-flask:latest .'
+                sh 'docker push docker login -u $USERNAME -p $TOKEN'
+            }
+        }
     }
 }
