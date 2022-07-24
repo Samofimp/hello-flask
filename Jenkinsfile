@@ -35,9 +35,11 @@ pipeline {
             agent { label 'slave && default' }
             steps {
                     unstash 'app'
-                    docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
-                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
-                            docker.build("$USERNAME/hello-flask:latest").push()
+                    script {
+                        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub-credentials') {
+                            withCredentials([usernamePassword(credentialsId: 'dockerhub-credentials', usernameVariable: 'USERNAME', passwordVariable: 'TOKEN')]) {
+                                docker.build("$USERNAME/hello-flask:latest").push()
+                            }
                         }
                     }
             }
